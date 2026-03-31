@@ -1,0 +1,21 @@
+# NOTE #
+> Mouse keybinds / shortcuts only work while the current widget is active (clicked on / hovered over)
+
+Topbar: (Major WIP)
+"ctrl+e" -> Export / Render (Broken)
+"ctrl+s" -> Save Project (Not Implemented)
+"ctrl+o" -> Open Project (Not Implemented)
+"ctrl+n" ->  New Project (Not Implemented)
+
+Playback:
+"p" -> Play/Pause playback
+
+
+Media Manager: (WIP)
+"ctrl+l" -> Load a new media object
+
+
+Timelines:
+"mousewheel" -> Move Left/Right on the timeline by 5 frames (@ 30fps)
+"shift+mousewheel" -> Move Left/Right on the timeline by 60 frames (2s @30fps)
+
