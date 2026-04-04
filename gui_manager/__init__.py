@@ -15,6 +15,8 @@ class App:
             size = pygame.display.get_desktop_sizes()[0]
 
         self.screen = pygame.display.set_mode(size, flags=pygame.RESIZABLE)
+        self.blit_loading()
+
         self.clock = pygame.time.Clock()
 
         pygame.display.set_caption(title)
@@ -26,6 +28,8 @@ class App:
         self.__full_redraw = True
         self.running = True
         self.active_widget = None
+
+        self.loading_assets = {}
 
         self.widget_lookup = {
             "topbar": Topbar(self),
@@ -41,6 +45,20 @@ class App:
         self.dragging_type = None
         self.dragging_data = None
         self.dragging_pos = (0, 0)
+
+    def load_assets(self):
+        for name, path in self.loading_assets.items():
+            print(f"[Loading] Asset: '{name}' @ '{path}'")
+            img = pygame.image.load(path).convert_alpha()
+            setattr(self, f"asset_{name}", img)
+
+    def blit_loading(self):
+        font = pygame.font.SysFont("Monospace", 24)
+        text = font.render("Starting Editor", True, (255, 255, 255))
+
+        self.screen.blit(text, ((self.screen.get_width()  - text.get_width())  / 2,
+                                     (self.screen.get_height() - text.get_height()) / 2))
+        pygame.display.flip()
 
     def start_dragging(self, drag_type: str, surface, dragging_data=None):
         self.dragging = True
@@ -89,6 +107,7 @@ class App:
             self.active_widget = widget
 
     def on_draw(self):
+        reset_cursor = True
         for i, widget in enumerate(self.__widgets):
             widget.on_draw()  # Updates widgets internal surface
             self.screen.blit(widget.surface, widget.pos)
@@ -102,7 +121,14 @@ class App:
 
                 dx, dy = x - timelines.pos[0], y - timelines.pos[1]
                 if 0 <= dy < timelines.size[1]:
-                    timelines.preview_drop(self.dragging_data, dx, dy)
+                    result = timelines.preview_drop(self.dragging_data, dx, dy)
+
+                    if result is False:
+                        reset_cursor = False
+                        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_NO)
+
+        if reset_cursor and pygame.mouse.get_cursor() != pygame.SYSTEM_CURSOR_ARROW:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
         self.__full_redraw = False
 
@@ -123,7 +149,6 @@ class App:
 
             if event.type == pygame.MOUSEMOTION and event.buttons[0] == 1:
                 self.dragging_pos = event.pos
-
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_p:
@@ -175,7 +200,6 @@ class App:
                 lines = (
                     f"FPS: {self.clock.get_fps():.1f}",
                     f"deltaTime: {dT:.3f}",
-                    f"Dragging?: {self.dragging}",
                 )
 
                 y = 2
@@ -183,7 +207,6 @@ class App:
                     rect = self.debug_font.render(line, True, (255, 0, 0))
                     self.screen.blit(rect, (2, y))
                     y += rect.get_height() + 1
-
 
             self.clock.tick(30)
             pygame.display.flip()
